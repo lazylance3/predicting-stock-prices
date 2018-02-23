@@ -18,7 +18,7 @@ df = df[['Adj. Close', 'HL_PCT', 'PCT_change', 'Adj. Volume']]
 forecast_col = 'Adj. Close'
 df.fillna(value=-99999, inplace=True)
 forecast_out = int(math.ceil(0.01 * len(df)))
-
+print(len(df))
 df['label'] = df[forecast_col].shift(-forecast_out)
 df.dropna(inplace=True)
 
@@ -42,8 +42,10 @@ print(forecast_set, confidence, forecast_out)
 
 style.use('ggplot')
 df['Forecast'] = np.nan
+print(df.tail())
 
 last_date = df.iloc[-1].name
+
 last_unix = last_date.timestamp()
 one_day = 86400
 next_unix = last_unix + one_day
