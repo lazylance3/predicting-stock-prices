@@ -7,17 +7,29 @@ from matplotlib import style
 from sklearn import preprocessing, model_selection, svm
 from sklearn.linear_model import LinearRegression
 
+#We get the historial data from quandl
 df = quandl.get("WIKI/GOOGL")
+#Now we tweak the dataframe to include only those columns we are interested in
 df = df[['Adj. Open',  'Adj. High',  'Adj. Low',  'Adj. Close', 'Adj. Volume']]
+#We calculate the percent diffrerence between the highest and lowest scores & also the percent of change between the closing score and the opening score for the day
 df['HL_PCT'] = (df['Adj. High'] - df['Adj. Low']) / df['Adj. Close'] * 100.0
 df['PCT_change'] = (df['Adj. Close'] - df['Adj. Open']) / df['Adj. Open'] * 100.0
+#We again tweak the dataframe to include the columns we are interested in
 df = df[['Adj. Close', 'HL_PCT', 'PCT_change', 'Adj. Volume']]
 
+'''
+We need to now create a situation which allows us to train our machine. In this case, we want the machine to be able to tell what the future price is while looking at the current price.
+The best way to do that is by telling the machine to look at the price at a particular date and then check the price 2 days later (just an example). This would help the machine learn the pattern of change between the current price and future price
+'''
+#As explained, our close values are future values. For e.g. value of the 27th is a future value for the price on date 20th
 forecast_col = 'Adj. Close'
+#Make sure we handle missing data with the next line. This line would be have executed earlier too.
 df.fillna(value=-99999, inplace=True)
+#Now we intend to tell our machine to predict 1% more of the histrical data that we have. Basically, if we have 2000 values, we want the machine to be able to give us additional 20 values, in our case, prices.
 forecast_out = int(math.ceil(0.01 * len(df)))
-print(len(df))
+#label is the apparent future price that we just spoke about in line 21-24. What the shift function does is "moves" or "shifts" the prices upward in the dataframe to a past date, hence achieving a "future" date on a particular row
 df['label'] = df[forecast_col].shift(-forecast_out)
+#Now, after we move or shift the prices upward, there will be many rows with no prices at the end. We need to remove those rows completely.
 df.dropna(inplace=True)
 
 y = np.array(df['label'])
@@ -35,7 +47,6 @@ confidence = clf.score(X_test, y_test)
 X_lately = X[-forecast_out:]
 X = X[:-forecast_out]
 forecast_set = clf.predict(X_lately)
-#print(confidence)
 print(forecast_set, confidence, forecast_out)
 
 style.use('ggplot')
